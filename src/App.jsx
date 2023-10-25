@@ -11,21 +11,40 @@ import {
 } from '@chakra-ui/react';
 import { Alchemy, Network, Utils } from 'alchemy-sdk';
 import { useState } from 'react';
+import useWallet from './wallet';
+
+const config = {
+    apiKey: 'tZLs3WwEJxDK7zgRXnPwoz8tEdCjqCKN',
+    network: Network.ETH_MAINNET,
+};
+
+const alchemy = new Alchemy(config);
+
 
 function App() {
-  const [userAddress, setUserAddress] = useState('');
   const [results, setResults] = useState([]);
   const [hasQueried, setHasQueried] = useState(false);
   const [tokenDataObjects, setTokenDataObjects] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [address, connectWallet] = useWallet();
+  
+
+  async function connect() {
+    setIsLoading(true);
+
+    await connectWallet()
+      .then(() => {
+        setIsLoading(false);
+      })
+      .catch(() => setIsLoading(false));
+    
+  }
 
   async function getTokenBalance() {
-    const config = {
-      apiKey: '<-- COPY-PASTE YOUR ALCHEMY API KEY HERE -->',
-      network: Network.ETH_MAINNET,
-    };
+    setIsLoading(true);
 
-    const alchemy = new Alchemy(config);
-    const data = await alchemy.core.getTokenBalances(userAddress);
+    const data = await alchemy.core.getTokenBalances(address);
 
     setResults(data);
 
@@ -40,6 +59,7 @@ function App() {
 
     setTokenDataObjects(await Promise.all(tokenDataPromises));
     setHasQueried(true);
+    setIsLoading(false);
   }
   return (
     <Box w="100vw">
@@ -64,18 +84,23 @@ function App() {
         alignItems="center"
         justifyContent={'center'}
       >
+        <img src='spinner.gif' className={isLoading ? 'spinner' : 'spinner hide'}></img>
         <Heading mt={42}>
           Get all the ERC-20 token balances of this address:
         </Heading>
         <Input
-          onChange={(e) => setUserAddress(e.target.value)}
+          value={address}
           color="black"
           w="600px"
+          bgColor="lightgray"
           textAlign="center"
+          border={"1px solid darkgray"}
           p={4}
-          bgColor="white"
           fontSize={24}
         />
+        <Button fontSize={20} onClick={connect} mt={36} bgColor="green">
+          Connect Wallet
+        </Button>
         <Button fontSize={20} onClick={getTokenBalance} mt={36} bgColor="blue">
           Check ERC-20 Token Balances
         </Button>

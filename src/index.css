@@ -68,3 +68,12 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+.spinner {
+  max-height: 80px;
+  max-width: 80px;
+}
+
+.hide {
+  display: none;
+}
